@@ -10,6 +10,8 @@ var urlText;
 var urlInput;
 
 var imageUrl;
+var checkUV;
+var downloadButton;
 
 function init() {
     button = document.querySelector('input#loadButton');
@@ -26,6 +28,9 @@ function init() {
     urlInput = document.querySelector('input#urlInput');
     urlInput.addEventListener('click', urlInputHandler);
 
+    checkUV = document.querySelector('input#checkUV');
+    downloadButton = document.querySelector('input#downloadButton');
+    downloadButton.addEventListener('click', canvasImageDownHandler, false);
 }
 
 function urlInputHandler() {
@@ -34,7 +39,7 @@ function urlInputHandler() {
 
     let fileUrl = urlText.value;
     //remove '.xdo' text
-    imageUrl = fileUrl.slice(0, fileUrl.indexOf('DataFile')+9);
+    imageUrl = fileUrl.slice(0, fileUrl.indexOf('DataFile') + 9);
 
     if (fileUrl == null) {
         alert('text is empty');
@@ -54,38 +59,37 @@ function urlInputHandler() {
 function fileChangeHandler(event) {
     let file = event.target.files[0];
     let fileData = new Blob([file]);
-    imageUrl = 'input xdo Image URL';
+    imageUrl = 'XDOFILE';
     fileReader(fileData);
 
 }
 
-function drawButtonHandler(index) {
-
-    let image = new Image();
-    //TODO : faceNum 이 여러개일 때 XDO imageName 이 어떻게 들어오는지 보고 XDO.js 의 getImage()수정해야함.
-    let imageName = XDO_file.getImage().imageName;
+function drawButtonHandler(event) {
+    let target = event.target;
+    let index = Number(target.getAttribute('data-arg'));
     
+    let image = new Image();
+    image.setAttribute('crossOrigin', 'anonymous');
+    //TODO : faceNum 이 여러개일 때 XDO imageName 이 어떻게 들어오는지 보고 XDO.js 의 getImage()수정해야함. 나중에 getImage에 index 매개변수 전달 혹은 배열로... 
+    let imageName = XDO_file.getImage().imageName;
     image.src = imageUrl + imageName + '.jpg';
-
     image.onload = function () {
         drawImageUV(image, XDO_file.getUV()[index], canvas, canvas_ctx);
     }
 }
 
-
+function canvasImageDownHandler(){
+    downloadButton.href = canvas.toDataURL();
+    downloadButton.download = 'test.png'
+}
 
 function addButton(buttonValue) {
-    let element = document.createElement('input');
-    element.type = 'button';
-    element.value = buttonValue + 'Num face';
-    element.id = buttonValue + '_face';
+    let element = document.createElement('button');
+    element.innerText = buttonValue + 'Num face';
+    element.setAttribute('data-arg', buttonValue);
 
-    element.addEventListener('click', function () {
-        drawButtonHandler(buttonValue);
-    });
-
+    element.addEventListener('click', drawButtonHandler);
     buttonDiv.appendChild(element);
-
 }
 
 function fileReader(blobFile) {
@@ -99,7 +103,7 @@ function fileReader(blobFile) {
         XDO_file.readRealData(arraybuffer, 0, false);
         let faceNumber = XDO_file.getFaceNum();
 
-        for (let i = 0, id = i + '_face'; i < faceNumber; i++) {
+        for (let i = 0; i < faceNumber; i++) {
             addButton(i);
         }
     }
@@ -125,7 +129,12 @@ function drawImageUV(image, uv, inCanvas, Ctx) {
 
     let convertUV = [];
     Ctx.beginPath();
-    Ctx.strokeStyle = '#ff0000';
+    
+    if (checkUV.checked)
+        Ctx.strokeStyle = 'rgba(255, 0, 0, 100)';
+    else
+        Ctx.strokeStyle = 'rgba(255, 0, 0, 0)';
+    ''
 
     for (let i = 0, startPoint; i < uv.length; i += 2) {
         let tempPoint = [Number(uv[i]) * image_width, Number(uv[i + 1]) * image_heigth];
