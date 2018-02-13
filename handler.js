@@ -24,12 +24,13 @@ function urlInputHandler() {
 function fileChangeHandler(event) {
     let file = event.target.files[0];
     let fileData = new Blob([file]);
-    imageUrl = 'XDOLink';
+    imageUrl = 'XDO file~;
     fileReader(fileData);
 
 }
 
 /*
+//TODO : 이미지 보정하는것 구현
 function appendFileHandler(event) {
     if(click_width.value == "0" && click_heigth.value == "0"){
         alert('not coordinate!');
@@ -74,11 +75,12 @@ function drawButtonHandler(event) {
     image.onload = function () {
         drawImage(image, canvas, canvas_ctx);
     }
+    clearPointText();
 }
 
 function canvasImageDownHandler(){
     let imageData = canvas.toDataURL();
-    if(file === undefined){
+    if(imageData === undefined){
         alert('not image load..');
         return;
     }
@@ -98,16 +100,22 @@ function canvasImageDownHandler(){
 
         setTimeout(function () {
             document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(imageData);
         }, 0);
     }
 }
 
 function selectUVChangeHandler(){
     let uv = this.options[this.selectedIndex].value.split(',');
-    if(oldUVSelectLine != null){
-        clearPastLine();
-    }
-    uvLinedraw(canvas_ctx, uv, 100);
+    uvLinedraw(uv_ctx, uv, 100, uvCanvas);
+    setPointText(uv);
+}
 
+function modifyUVHandler(event){
+    let test = new FormData(event.target);
+
+    event.preventDefault();
+
+    //origin index => (사각형순서 - 1) * 6 + 2 * (pointIndex - 1) + 1(x좌표) or 2(y좌표) 
+    console.log('test');
 }

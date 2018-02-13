@@ -2,6 +2,9 @@ window.addEventListener('load', init);
 
 var canvas,
     canvas_ctx,
+    uvCanvas,
+    uv_ctx,
+    textureArea,
     buttonDiv,
     button,
     XDO_file;
@@ -23,12 +26,17 @@ var loadfileIndex,
 var selecterUVList,
     oldUVSelectLine;
 
+var point1_x, point2_x, point3_x,
+    point1_y, point2_y, point3_y,
+    modifyForm;
+
 function init() {
     XDO_file = new XDO();
 
     button = document.querySelector('input#loadButton');
     urlInput = document.querySelector('input#urlInput');
     downloadButton = document.querySelector('input#downloadButton');
+    textureArea = document.querySelector('div#textureArea');
     //   appendFileInput = document.querySelector('input#appendImage');
 
     button.addEventListener('change', fileChangeHandler, false);
@@ -37,6 +45,7 @@ function init() {
     //    appendFileInput.addEventListener('click', appendFileHandler, false);
 
     canvas = document.querySelector('canvas#loadImage');
+    uvCanvas = document.querySelector('canvas#uvCanvas');
     checkUV = document.querySelector('input#checkUV');
     buttonDiv = document.getElementById('faceDraw');
 
@@ -49,9 +58,21 @@ function init() {
         click_heigth.value = event.layerY;
     });
     canvas_ctx = canvas.getContext('2d');
+    uv_ctx = uvCanvas.getContext('2d');
 
     selecterUVList = document.querySelector('select#uvlist');
     selecterUVList.addEventListener('change', selectUVChangeHandler);
+
+    point1_x = document.querySelector('input#point1_x');
+    point2_x = document.querySelector('input#point2_x');
+    point3_x = document.querySelector('input#point3_x');
+
+    point1_y = document.querySelector('input#point1_y');
+    point2_y = document.querySelector('input#point2_y');
+    point3_y = document.querySelector('input#point3_y');
+
+    modifyForm = document.querySelector('form#modifyForm');
+    modifyForm.addEventListener('submit', modifyUVHandler);
 }
 
 
@@ -89,8 +110,7 @@ function drawImage(image, inCanvas, Ctx) {
     image_width = image.naturalWidth;
 
     inCanvas.width = image_width;
-    inCanvas.height = image_heigth
-
+    inCanvas.height = image_heigth;
 
     if (image instanceof HTMLImageElement) {
         Ctx.drawImage(image, 0, 0, image.width, image.height);
@@ -100,20 +120,26 @@ function drawImage(image, inCanvas, Ctx) {
     clearSelectList();
     //TODO: face 여러개 나오는 것은 getUV[index] 로 처리
     if (checkUV.checked)
-        uvLinedraw(Ctx, XDO_file.getUV()[loadfileIndex], 100);
+        uvLinedraw(uv_ctx, XDO_file.getUV()[loadfileIndex], 100, uvCanvas);
     else
-        uvLinedraw(Ctx, XDO_file.getUV()[loadfileIndex], 0);
+        uvLinedraw(uv_ctx, XDO_file.getUV()[loadfileIndex], 0, uvCanvas);
     ''
 
 
 }
 
-function uvLinedraw(Ctx, uv, alpha) {
+function uvLinedraw(uv_ctx, uv, alpha, uvCanvas) {
 
-    Ctx.beginPath();
+
+    uv_ctx.clearRect(0, 0, image_width, image_heigth);
+
+    uvCanvas.width = image_width;
+    uvCanvas.height = image_heigth;
+
+    uv_ctx.beginPath();
     if (uv != undefined && uv.length > 6) {
         //전체 uv를 그리기
-        Ctx.strokeStyle = 'rgba(255, 0, 0,' + alpha + ')';
+        uv_ctx.strokeStyle = 'rgba(255, 0, 0,' + alpha + ')';
 
         let convertUV = [];
         let temp = [];
@@ -121,15 +147,15 @@ function uvLinedraw(Ctx, uv, alpha) {
             let tempPoint = [Number(uv[i]) * image_width, Number(uv[i + 1]) * image_heigth];
             temp.push(tempPoint);
             if (i % 6 == 0) {
-                Ctx.moveTo(tempPoint[0], tempPoint[1]);
+                uv_ctx.moveTo(tempPoint[0], tempPoint[1]);
                 startPoint = tempPoint.slice(0, 2);
             }
             else {
-                Ctx.lineTo(tempPoint[0], tempPoint[1]);
-                Ctx.stroke();
+                uv_ctx.lineTo(tempPoint[0], tempPoint[1]);
+                uv_ctx.stroke();
                 if (i % 6 == 4) {
-                    Ctx.lineTo(startPoint[0], startPoint[1]);
-                    Ctx.stroke();
+                    uv_ctx.lineTo(startPoint[0], startPoint[1]);
+                    uv_ctx.stroke();
                     convertUV.push(temp);
                     temp = [];
                 }
@@ -139,23 +165,21 @@ function uvLinedraw(Ctx, uv, alpha) {
         setSelectListItem(convertUV);
     }
     else if (uv != undefined) {
-        if (alpha == 100) {
-            oldUVSelectLine = uv;
-        }
+
         //한점 그리기 혹은 아예 안그리기. 이 때에는 ctx와 uv 만 받는다.
-        Ctx.strokeStyle = 'rgba(51, 255, 255,' + alpha + ')';
+        uv_ctx.strokeStyle = 'rgba(51, 255, 255,' + alpha + ')';
         for (let i = 0, startPoint; i < uv.length; i += 2) {
             let tempPoint = [Number(uv[i]), Number(uv[i + 1])];
             if (i % 6 == 0) {
-                Ctx.moveTo(tempPoint[0], tempPoint[1]);
+                uv_ctx.moveTo(tempPoint[0], tempPoint[1]);
                 startPoint = tempPoint.slice(0, 2);
             }
             else {
-                Ctx.lineTo(tempPoint[0], tempPoint[1]);
-                Ctx.stroke();
+                uv_ctx.lineTo(tempPoint[0], tempPoint[1]);
+                uv_ctx.stroke();
                 if (i % 6 == 4) {
-                    Ctx.lineTo(startPoint[0], startPoint[1]);
-                    Ctx.stroke();
+                    uv_ctx.lineTo(startPoint[0], startPoint[1]);
+                    uv_ctx.stroke();
                 }
             }
         }
@@ -176,10 +200,19 @@ function setSelectListItem(itemList) {
     }
     offset = null;
 }
+
+function setPointText(pointList){
+    point1_x.value = pointList[0], point1_y.value = pointList[1],
+    point2_x.value = pointList[2], point2_y.value = pointList[3],
+    point3_x.value = pointList[4], point3_y.value = pointList[5];
+}
+
 function clearSelectList() {
     selecterUVList.innerText = null;
 }
 
-function clearPastLine() {
-    uvLinedraw(canvas_ctx, oldUVSelectLine, 0);
+function clearPointText() {
+    point1_x.value = 0, point1_y.value = 0,
+    point2_x.value = 0, point2_y.value = 0,
+    point3_x.value = 0, point3_y.value = 0;
 }
