@@ -2,6 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="handler.js"></script>
+    <script src="module.js"></script>
     <script src="XDO.js"></script>
 </head>
 
@@ -11,6 +12,11 @@
     <input id="checkUV" type="checkbox" /><label for="checkUV">uv line visble</label>
     <input id="loadButton" type="file"/>
     <input type="button" id="downloadButton" value="download"/>
+    <br>
+    <lable for ="click_width">X: </lable><input id="click_width" type="text" size="4" disabled='true' value = '0'>
+    <lable for ="click_heigth">Y: </lable><input id="click_heigth" type="text" size="4" disabled='true' value = '0'>
+    <!--<input type="file" id='appendImage' value="appendFile"/> -->
+    <select id='uvlist'></select>
     <br>
     <div id = "faceDraw">
     <!--버튼 들어가는 영역-->
