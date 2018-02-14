@@ -4,6 +4,8 @@ var canvas,
     canvas_ctx,
     uvCanvas,
     uv_ctx,
+    overlayCanvas,
+    overlay_ctx,
     textureArea,
     buttonDiv,
     button,
@@ -22,13 +24,14 @@ var loadfileIndex,
     click_width,
     click_heigth;
 
-//var appendFileInput;
+var appendFileInput;
 var selecterUVList,
     oldUVSelectLine;
 
 var point1_x, point2_x, point3_x,
     point1_y, point2_y, point3_y,
-    modifyForm;
+    modifyForm,
+    overlayStart_x, overlayStart_y;
 
 function init() {
     XDO_file = new XDO();
@@ -37,15 +40,16 @@ function init() {
     urlInput = document.querySelector('input#urlInput');
     downloadButton = document.querySelector('input#downloadButton');
     textureArea = document.querySelector('div#textureArea');
-    //   appendFileInput = document.querySelector('input#appendImage');
+    appendFileInput = document.querySelector('input#appendImage');
 
     button.addEventListener('change', fileChangeHandler, false);
     urlInput.addEventListener('click', urlInputHandler, false);
     downloadButton.addEventListener('click', canvasImageDownHandler, false);
-    //    appendFileInput.addEventListener('click', appendFileHandler, false);
+    appendFileInput.addEventListener('change', appendFileHandler, false);
 
     canvas = document.querySelector('canvas#loadImage');
     uvCanvas = document.querySelector('canvas#uvCanvas');
+    overlayCanvas = document.querySelector('canvas#overlayImage');
     checkUV = document.querySelector('input#checkUV');
     buttonDiv = document.getElementById('faceDraw');
 
@@ -53,12 +57,14 @@ function init() {
     click_width = document.querySelector('input#click_width');
     click_heigth = document.querySelector('input#click_heigth');
 
-    canvas.addEventListener('click', function (event) {
+    overlayImage.addEventListener('click', function (event) {
         click_width.value = event.layerX;
         click_heigth.value = event.layerY;
     });
+
     canvas_ctx = canvas.getContext('2d');
     uv_ctx = uvCanvas.getContext('2d');
+    overlay_ctx = overlayCanvas.getContext('2d');
 
     selecterUVList = document.querySelector('select#uvlist');
     selecterUVList.addEventListener('change', selectUVChangeHandler);
@@ -102,7 +108,7 @@ function fileReader(blobFile) {
     }
 }
 
-function drawImage(image, inCanvas, Ctx) {
+function drawImage(image, inCanvas, Ctx, startX, startY) {
 
     Ctx.clearRect(0, 0, inCanvas.width, inCanvas.height);
 
@@ -113,19 +119,31 @@ function drawImage(image, inCanvas, Ctx) {
     inCanvas.height = image_heigth;
 
     if (image instanceof HTMLImageElement) {
-        Ctx.drawImage(image, 0, 0, image.width, image.height);
+        Ctx.drawImage(image, startX, startY, image.width, image.height);
     } else if (image instanceof ImageData) {
-        Ctx.putImageData(image, 0, 0);
+        Ctx.putImageData(image, startX, startY);
     }
     clearSelectList();
+
     //TODO: face 여러개 나오는 것은 getUV[index] 로 처리
     if (checkUV.checked)
         uvLinedraw(uv_ctx, XDO_file.getUV()[loadfileIndex], 100, uvCanvas);
     else
         uvLinedraw(uv_ctx, XDO_file.getUV()[loadfileIndex], 0, uvCanvas);
     ''
+}
 
+function overlayDraw(image, inCanvas, Ctx, startX, startY){
+    Ctx.clearRect(0, 0, inCanvas.width, inCanvas.height);
 
+    inCanvas.width = image_width;
+    inCanvas.height = image_heigth;
+
+    if (image instanceof HTMLImageElement) {
+        Ctx.drawImage(image, startX, startY, image.width, image.height);
+    } else if (image instanceof ImageData) {
+        Ctx.putImageData(image, startX, startY);
+    }
 }
 
 function uvLinedraw(uv_ctx, uv, alpha, uvCanvas) {

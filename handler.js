@@ -24,43 +24,37 @@ function urlInputHandler() {
 function fileChangeHandler(event) {
     let file = event.target.files[0];
     let fileData = new Blob([file]);
-    imageUrl = 'XDO file~;
+    imageUrl = 'XDOFIle';
     fileReader(fileData);
 
 }
 
-/*
-//TODO : 이미지 보정하는것 구현
+
 function appendFileHandler(event) {
+    let file = event.target.files[0]; 
+
     if(click_width.value == "0" && click_heigth.value == "0"){
         alert('not coordinate!');
+        event.preventDefault();
+        return;
+    }
+    if (!file.type.startsWith('image/')) {
+        alert("not image");
+        event.preventDefault();
         return;
     }
 
-    let file = event.target.files[0];
     let filereader = new FileReader();
-    let image = new Image();
-
     filereader.onload = function (e) {
+        let image = new Image();
         image.src = e.target.result;
         image.onload = function () {
-            let heigth = image.naturalHeight;
-            let width = image.naturalWidth;
-
-            appendCanvas.height = heigth;
-            appendCanvas.width = width;
-
-            if (image instanceof HTMLImageElement) {
-                Ctx.drawImage(image, Number(click_width.value), Number(click_heigth.value), heigth);
-            } else if (image instanceof ImageData) {
-                Ctx.putImageData(image, Number(click_width.value), Number(click_heigth.value));
-            }
+            overlayDraw(image, overlayCanvas, overlay_ctx, Number(click_width.value), Number(click_heigth.value))
         }
     }
     filereader.readAsDataURL(file);
-
 }
-*/
+
 
 function drawButtonHandler(event) {
     let target = event.target;
@@ -73,7 +67,7 @@ function drawButtonHandler(event) {
     let imageName = XDO_file.getImage().imageName;
     image.src = imageUrl + imageName + '.jpg';
     image.onload = function () {
-        drawImage(image, canvas, canvas_ctx);
+        drawImage(image, canvas, canvas_ctx, 0, 0);
     }
     clearPointText();
 }

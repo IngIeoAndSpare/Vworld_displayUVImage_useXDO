@@ -8,15 +8,18 @@
 </head>
 
 <body>
+    <div>
     <input type="text" id="XDO_url" />
     <input type="button" id="urlInput" value="click" />
     <input id="checkUV" type="checkbox" /><label for="checkUV">uv line visble</label>
     <input id="loadButton" type="file" />
     <input type="button" id="downloadButton" value="download" />
+    </div>
     <br>
     <lable for="click_width">X: </lable><input id="click_width" type="text" size="4" disabled='true' value='0'>
     <lable for="click_heigth">Y: </lable><input id="click_heigth" type="text" size="4" disabled='true' value='0'>
-    <!--<input type="file" id='appendImage' value="appendFile"/> -->
+    <input id='appendImage' type="file" />
+
     <select id='uvlist'></select>
     <br>
 
@@ -27,6 +30,7 @@
     <div id="textureArea" style="background-color:black; position: relative; width: 50%; height: 30%;">
         <canvas id='loadImage' style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
         <canvas id='uvCanvas' style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
+        <canvas id='overlayImage' style="position: absolute; left: 0; top: 0; z-index: 2;"></canvas>
     </div>
     <br>
     <form action="post" id='modifyForm'>
