@@ -25,13 +25,13 @@ var loadfileIndex,
     click_heigth;
 
 var appendFileInput;
-var selecterUVList,
-    oldUVSelectLine;
+var selecterUVList;
 
 var point1_x, point2_x, point3_x,
     point1_y, point2_y, point3_y,
-    modifyForm,
-    overlayStart_x, overlayStart_y;
+    modifybutton;
+
+var overlayImage, overlayStart_x, overlayStart_y;
 
 function init() {
     XDO_file = new XDO();
@@ -57,10 +57,11 @@ function init() {
     click_width = document.querySelector('input#click_width');
     click_heigth = document.querySelector('input#click_heigth');
 
-    overlayImage.addEventListener('click', function (event) {
+    overlayCanvas.addEventListener('click', function (event) {
         click_width.value = event.layerX;
         click_heigth.value = event.layerY;
     });
+    //overlayCanvas.addEventListener()
 
     canvas_ctx = canvas.getContext('2d');
     uv_ctx = uvCanvas.getContext('2d');
@@ -77,8 +78,8 @@ function init() {
     point2_y = document.querySelector('input#point2_y');
     point3_y = document.querySelector('input#point3_y');
 
-    modifyForm = document.querySelector('form#modifyForm');
-    modifyForm.addEventListener('submit', modifyUVHandler);
+    modifybutton = document.querySelector('input#modify');
+    modifybutton.addEventListener('click', modifyUVHandler);
 }
 
 
@@ -92,8 +93,8 @@ function addButton(buttonValue) {
 }
 
 function fileReader(blobFile) {
+    clearFaceButton();
     let fileLoader = new FileReader();
-
     fileLoader.readAsArrayBuffer(blobFile);
     fileLoader.onload = function () {
         let arraybuffer = fileLoader.result;
@@ -125,11 +126,11 @@ function drawImage(image, inCanvas, Ctx, startX, startY) {
     }
     clearSelectList();
 
-    //TODO: face 여러개 나오는 것은 getUV[index] 로 처리
+    //TODO: face 여러개 나오는 것은 getUV(face_index) 로 처리
     if (checkUV.checked)
-        uvLinedraw(uv_ctx, XDO_file.getUV()[loadfileIndex], 100, uvCanvas);
+        uvLinedraw(uv_ctx, XDO_file.getUV(loadfileIndex), 100, uvCanvas);
     else
-        uvLinedraw(uv_ctx, XDO_file.getUV()[loadfileIndex], 0, uvCanvas);
+        uvLinedraw(uv_ctx, XDO_file.getUV(loadfileIndex), 0, uvCanvas);
     ''
 }
 
@@ -147,7 +148,6 @@ function overlayDraw(image, inCanvas, Ctx, startX, startY){
 }
 
 function uvLinedraw(uv_ctx, uv, alpha, uvCanvas) {
-
 
     uv_ctx.clearRect(0, 0, image_width, image_heigth);
 
@@ -225,6 +225,10 @@ function setPointText(pointList){
     point3_x.value = pointList[4], point3_y.value = pointList[5];
 }
 
+function clearFaceButton() {
+    buttonDiv.innerText = '';
+}
+
 function clearSelectList() {
     selecterUVList.innerText = null;
 }
@@ -233,4 +237,21 @@ function clearPointText() {
     point1_x.value = 0, point1_y.value = 0,
     point2_x.value = 0, point2_y.value = 0,
     point3_x.value = 0, point3_y.value = 0;
+}
+
+function getPoint() {
+    return [
+        [
+            Number(point1_x.value) / canvas.width, Number(point1_y.value) / canvas.height,
+            Number(point2_x.value) / canvas.width, Number(point2_y.value) / canvas.height,
+            Number(point3_x.value) / canvas.width, Number(point3_y.value) / canvas.height
+        ],
+        [
+            Number(point1_x.value) , Number(point1_y.value),
+            Number(point2_x.value) , Number(point2_y.value),
+            Number(point3_x.value) , Number(point3_y.value)
+        ]
+
+    ]
+    
 }

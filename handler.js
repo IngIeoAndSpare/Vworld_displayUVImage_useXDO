@@ -1,6 +1,6 @@
 function urlInputHandler() {
     //clear div child
-    buttonDiv.innerText = '';
+    clearFaceButton();
 
     let fileUrl = urlText.value;
     //remove '.xdo' text
@@ -24,11 +24,9 @@ function urlInputHandler() {
 function fileChangeHandler(event) {
     let file = event.target.files[0];
     let fileData = new Blob([file]);
-    imageUrl = 'XDOFIle';
+    imageUrl = 'imageFileName';
     fileReader(fileData);
-
 }
-
 
 function appendFileHandler(event) {
     let file = event.target.files[0]; 
@@ -46,10 +44,10 @@ function appendFileHandler(event) {
 
     let filereader = new FileReader();
     filereader.onload = function (e) {
-        let image = new Image();
-        image.src = e.target.result;
-        image.onload = function () {
-            overlayDraw(image, overlayCanvas, overlay_ctx, Number(click_width.value), Number(click_heigth.value))
+        overlayImage = new Image();
+        overlayImage.src = e.target.result;
+        overlayImage.onload = function () {
+            overlayDraw(overlayImage, overlayCanvas, overlay_ctx, Number(click_width.value), Number(click_heigth.value))
         }
     }
     filereader.readAsDataURL(file);
@@ -99,17 +97,22 @@ function canvasImageDownHandler(){
     }
 }
 
+
 function selectUVChangeHandler(){
     let uv = this.options[this.selectedIndex].value.split(',');
     uvLinedraw(uv_ctx, uv, 100, uvCanvas);
     setPointText(uv);
 }
 
-function modifyUVHandler(event){
-    let test = new FormData(event.target);
-
-    event.preventDefault();
-
-    //origin index => (사각형순서 - 1) * 6 + 2 * (pointIndex - 1) + 1(x좌표) or 2(y좌표) 
-    console.log('test');
+function modifyUVHandler(){
+    let coorSet = getPoint();
+    let origin_index = selecterUVList.selectedIndex * 6;
+    let optionString = '';
+    //XDO file uv 변경
+    for(let i = 0; i < 6; i++, origin_index++){
+        XDO_file.modifiedUV(loadfileIndex, origin_index, coorSet[0][i]);
+        optionString += coorSet[1][i]+',';
+    }
+    //마지막 ',' 삭제
+    selecterUVList.options[selecterUVList.selectedIndex].value = optionString.slice(0,-1);
 }
